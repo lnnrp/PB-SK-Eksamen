@@ -4,38 +4,42 @@ trigger:
 pool:
   name: "Default"
 
-steps:
-- checkout: self
+jobs:
+- job: CI_BuildAndTest     # ← Logical job name (used internally in Azure)
+  displayName: 'CI: Build and Test'  # ← Friendly name shown in Azure DevOps UI
 
-# 1) Ensure right .NET SDK version is installed
-- task: UseDotNet@2
-  displayName: 'Install .NET SDK'
-  inputs:
-    packageType: 'sdk'
-    version: 9.0.x
+  steps:
+  - checkout: self
 
-# 2) Restore NuGet packages
-- task: DotNetCoreCLI@2
-  displayName: 'Restore dependencies'
-  inputs:
-    command: 'restore'
-    projects: '**/*.csproj' 
+  # 1) Ensure right .NET SDK version is installed
+  - task: UseDotNet@2
+    displayName: 'Install .NET SDK'
+    inputs:
+      packageType: 'sdk'
+      version: 9.0.x
 
-# 3) Build your solution 
-- task: DotNetCoreCLI@2
-  displayName: 'Build projects'
-  inputs:
-    command: 'build'
-    projects: '**/*.sln'
-    arguments: '--configuration Release'
+  # 2) Restore NuGet packages
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore dependencies'
+    inputs:
+      command: 'restore'
+      projects: '**/*.csproj' 
 
-# 4) Run xUnit tests and publish results
-- task: DotNetCoreCLI@2
-  displayName: 'Test project'
-  inputs:
-    command: 'test'
-    projects: '**/APIProjectTest/*.csproj'
-    arguments: >
-      --configuration Release
-      --no-build
-      --logger "trx;LogFileName=test_results.trx"
+  # 3) Build your solution 
+  - task: DotNetCoreCLI@2
+    displayName: 'Build projects'
+    inputs:
+      command: 'build'
+      projects: '**/*.sln'
+      arguments: '--configuration Release'
+
+  # 4) Run xUnit tests and publish results
+  - task: DotNetCoreCLI@2
+    displayName: 'Test project'
+    inputs:
+      command: 'test'
+      projects: '**/APIProjectTest/*.csproj'
+      arguments: >
+        --configuration Release
+        --no-build
+        --logger "trx;LogFileName=test_results.trx"
